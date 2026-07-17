@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches and IDE settings
+.matplotlib/
+.uv-cache/
+.agents/
+.vscode/
+.idea/
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Spreadsheet inputs (protect private datasets)
+*.xlsx
+*.xls
+inputs/
+
+# Output graphs (protect generated assets)
+*.png
+*.pdf
+*.svg
+graphs/
