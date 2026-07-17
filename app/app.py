@@ -28,6 +28,76 @@ st.set_page_config(
     layout="wide",
 )
 
+# Safe retrieval of analytics password from Streamlit secrets
+analytics_password = None
+try:
+    if "ANALYTICS_PASSWORD" in st.secrets:
+        analytics_password = st.secrets["ANALYTICS_PASSWORD"]
+except Exception:
+    pass
+
+import streamlit_analytics2 as streamlit_analytics
+streamlit_analytics.start_tracking(unsafe_password=analytics_password)
+
+# Check application authentication
+def check_password():
+    """Returns True if the user has entered the correct password."""
+    # Retrieve the password from secrets
+    app_password = None
+    try:
+        if "APP_PASSWORD" in st.secrets:
+            app_password = st.secrets["APP_PASSWORD"]
+    except Exception:
+        pass
+    
+    # If no password is set, bypass authentication
+    if not app_password:
+        return True
+
+    # Check if already authenticated in session state
+    if st.session_state.get("authenticated", False):
+        return True
+
+    # Render CSS style so header/subheader look good on login page too
+    st.markdown("""
+        <style>
+            .main-header {
+                font-size: 2.5rem;
+                color: #2E4057;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+            }
+            .subheader {
+                font-size: 1.2rem;
+                color: #566E80;
+                margin-bottom: 2rem;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Render a beautiful password prompt
+    st.markdown('<div class="main-header" style="text-align: center; margin-top: 5rem;">🔒 Secure Access Required</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subheader" style="text-align: center;">Please enter the password to unlock the Interactive Stats Grapher.</div>', unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        with st.form("login_form"):
+            password_input = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Unlock")
+            
+            if submitted:
+                if password_input == app_password:
+                    st.session_state["authenticated"] = True
+                    st.rerun()
+                else:
+                    st.error("Incorrect password. Please try again.")
+                    
+    return False
+
+if not check_password():
+    streamlit_analytics.stop_tracking(unsafe_password=analytics_password)
+    st.stop()
+
 st.markdown("""
     <style>
         .main-header {
@@ -337,3 +407,5 @@ else:
         
         The app will automatically detect percentage vs. fraction values and allow interactive threshold tuning.
     """)
+
+streamlit_analytics.stop_tracking(unsafe_password=analytics_password)
